@@ -60,7 +60,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Set the token in an HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,
+      secure: NODE_ENV === 'production',
       sameSite: 'none',
       priority: 'high',
       path: '/',
