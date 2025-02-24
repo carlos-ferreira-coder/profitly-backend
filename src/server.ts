@@ -18,7 +18,7 @@ const DOMAIN = process.env.DOMAIN || ''
 const PORT = process.env.PORT || ''
 const JWT_SECRET = process.env.JWT_SECRET || ''
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || '',
+  origin: process.env.CORS_ORIGIN?.split(',') || '',
   methods: process.env.CORS_METHODS?.split(',') || [],
   credentials: process.env.CORS_CREDENTIALS === 'true' || true,
 }
@@ -26,9 +26,9 @@ const corsOptions = {
 const app = express()
 export const prisma = new PrismaClient()
 
-app.use(cookieParser(JWT_SECRET))
 app.use(cors(corsOptions))
 app.use(express.json())
+app.use(cookieParser(JWT_SECRET))
 
 app.use('/user', auth, routerUser)
 app.use('/auth', routerAuth)
