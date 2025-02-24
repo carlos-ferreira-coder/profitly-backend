@@ -23,8 +23,6 @@ const corsOptions = {
   credentials: process.env.CORS_CREDENTIALS === 'true' || true,
 }
 
-console.log(corsOptions)
-
 const app = express()
 export const prisma = new PrismaClient()
 
