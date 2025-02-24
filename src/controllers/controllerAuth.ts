@@ -8,7 +8,6 @@ import { userSchema } from '@utils/Schema/user'
 import { authSchema } from '@utils/Schema/auth'
 
 const JWT_SECRET = process.env.JWT_SECRET || ''
-const NODE_ENV = process.env.NODE_ENV || ''
 
 const authorization = async (uuid: string): Promise<boolean> => {
   const auth = await prisma.auth.findUnique({ where: { uuid: uuid } })
@@ -60,7 +59,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Set the token in an HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: NODE_ENV === 'production',
+      secure: true,
       sameSite: 'none',
       priority: 'high',
       path: '/',
