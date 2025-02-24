@@ -79,6 +79,13 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     // clear cookies
     if (req.cookies['token']) {
       res.clearCookie('token')
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        priority: 'high',
+        path: '/',
+      })
     }
 
     res.status(200).json({ message: 'Deslogado com sucesso.' })
