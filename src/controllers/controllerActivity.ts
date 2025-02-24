@@ -49,9 +49,24 @@ export const activitySelect = async (req: Request, res: Response): Promise<void>
       },
     })
 
+    // format date to 'dd/mm/yy --:--'
+    const formatDate = (date: Date | null) => {
+      if (!date) return null
+
+      const year = String(date.getFullYear()).slice(-2)
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hour = String(date.getHours()).padStart(2, '0')
+      const minute = String(date.getMinutes()).padStart(2, '0')
+
+      return `${day}/${month}/${year} ${hour}:${minute}`
+    }
+
     // format user(s)
     const response = activitys.map((activity) => ({
       ...activity,
+      beginDate: formatDate(activity.beginDate),
+      endDate: formatDate(activity.endDate),
       hourlyRate: numberToCurrency(activity.hourlyRate.toNumber(), 'BRL'),
     }))
 
