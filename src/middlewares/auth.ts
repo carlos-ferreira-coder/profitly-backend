@@ -7,7 +7,7 @@ export const auth = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const token = req.cookies['token']
 
-    console.log(`req: ${req}`)
+    console.log(`req: ${JSON.stringify(req)}`)
     console.log(`token: ${token}`)
 
     // check if has token authorization
