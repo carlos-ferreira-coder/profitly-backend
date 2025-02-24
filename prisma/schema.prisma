@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  uuid        String        @unique @default(uuid()) @db.Uuid
+  cpf         String        @unique
+  photo       String?
+  name        String
+  username    String
+  email       String        @unique
+  password    String
+  phone       String?
+  active      Boolean
+  hourlyRate  Decimal?      @map("hourly_rate") @db.Decimal(15, 2)
+  authUuid    String        @map("auth_uuid") @db.Uuid
+  auth        Auth          @relation(fields: [authUuid], references: [uuid], onDelete: Restrict)
+  task        Task[]
+  activity    Activity[]
+  expense     Expense[]
+  transaction Transaction[]
+
+  @@map("user")
+}
+
+model Auth {
+  id        Int     @id @default(autoincrement())
+  uuid      String  @unique @default(uuid()) @db.Uuid
+  type      String
+  admin     Boolean
+  project   Boolean
+  personal  Boolean
+  financial Boolean
+  user      User[]
+
+  @@map("auth")
+}
+
+model Status {
+  id          Int       @id @default(autoincrement())
+  uuid        String    @unique @default(uuid()) @db.Uuid
+  name        String
+  description String
+  priority    Int
+  Project     Project[]
+  Task        Task[]
+
+  @@map("status")
+}
+
+enum ClientType {
+  Person
+  Enterprise
+}
+
+model Client {
+  id          Int           @id @default(autoincrement())
+  uuid        String        @unique @default(uuid()) @db.Uuid
+  type        ClientType
+  cpf         String?       @unique
+  cnpj        String?       @unique
+  name        String
+  fantasy     String?
+  email       String        @unique
+  phone       String?
+  active      Boolean
+  project     Project[]
+  transaction Transaction[]
+
+  @@map("client")
+}
+
+model Project {
+  id          Int           @id @default(autoincrement())
+  uuid        String        @unique @default(uuid()) @db.Uuid
+  name        String
+  description String
+  active      Boolean
+  clientUuid  String        @map("client_uuid") @db.Uuid
+  statusUuid  String        @map("status_uuid") @db.Uuid
+  budgetUuid  String        @unique @map("budget_uuid") @db.Uuid
+  client      Client        @relation(fields: [clientUuid], references: [uuid], onDelete: Cascade)
+  status      Status        @relation(fields: [statusUuid], references: [uuid], onDelete: Restrict)
+  budget      Budget        @relation(fields: [budgetUuid], references: [uuid], onDelete: Restrict)
+  task        Task[]
+  transaction Transaction[]
+
+  @@map("project")
+}
+
+model Budget {
+  id      Int      @id @default(autoincrement())
+  uuid    String   @unique @default(uuid()) @db.Uuid
+  date    DateTime
+  task    Task[]
+  project Project?
+
+  @@map("budget")
+}
+
+enum TaskType {
+  Activity
+  Expense
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  uuid        String     @unique @default(uuid()) @db.Uuid
+  type        TaskType
+  description String
+  beginDate   DateTime   @map("begin_date")
+  endDate     DateTime   @map("end_date")
+  hourlyRate  Decimal?   @default(0) @map("hourly_rate") @db.Decimal(15, 2)
+  cost        Decimal?   @default(0) @db.Decimal(15, 2)
+  revenue     Decimal    @default(0) @db.Decimal(15, 2)
+  statusUuid  String     @map("status_uuid") @db.Uuid
+  userUuid    String?    @map("user_uuid") @db.Uuid
+  projectUuid String     @map("project_uuid") @db.Uuid
+  budgetUuid  String?    @map("budget_uuid") @db.Uuid
+  status      Status     @relation(fields: [statusUuid], references: [uuid], onDelete: Restrict)
+  project     Project    @relation(fields: [projectUuid], references: [uuid], onDelete: Cascade)
+  user        User?      @relation(fields: [userUuid], references: [uuid], onDelete: SetNull)
+  budget      Budget?    @relation(fields: [budgetUuid], references: [uuid], onDelete: Cascade)
+  expense     Expense[]
+  activity    Activity[]
+
+  @@map("task_expense")
+}
+
+model Expense {
+  id           Int       @id @default(autoincrement())
+  uuid         String    @unique @default(uuid()) @db.Uuid
+  description  String?
+  type         String
+  cost         Decimal   @default(0) @db.Decimal(15, 2)
+  date         DateTime
+  userUuid     String    @map("user_uuid") @db.Uuid
+  taskUuid     String    @map("task_uuid") @db.Uuid
+  supplierUuid String?   @map("supplier_uuid") @db.Uuid
+  task         Task      @relation(fields: [taskUuid], references: [uuid], onDelete: Restrict)
+  user         User      @relation(fields: [userUuid], references: [uuid], onDelete: Restrict)
+  supplier     Supplier? @relation(fields: [supplierUuid], references: [uuid], onDelete: SetNull)
+
+  @@map("expense")
+}
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid()) @db.Uuid
+  description String?
+  beginDate   DateTime @map("begin_date")
+  endDate     DateTime @map("end_date")
+  hourlyRate  Decimal  @default(0) @map("hourly_rate") @db.Decimal(15, 2)
+  userUuid    String   @map("user_uuid") @db.Uuid
+  taskUuid    String   @map("task_uuid") @db.Uuid
+  task        Task     @relation(fields: [taskUuid], references: [uuid], onDelete: Restrict)
+  user        User     @relation(fields: [userUuid], references: [uuid], onDelete: Restrict)
+
+  @@map("activity")
+}
+
+enum SupplierType {
+  Person
+  Enterprise
+}
+
+model Supplier {
+  id       Int          @id @default(autoincrement())
+  uuid     String       @unique @default(uuid()) @db.Uuid
+  type     SupplierType
+  cpf      String?      @unique
+  cnpj     String?      @unique
+  name     String
+  fantasy  String?
+  email    String       @unique
+  phone    String?
+  active   Boolean
+  address  String?
+  expenses Expense[]
+
+  @@map("supplier")
+}
+
+enum TransactionType {
+  Expense
+  Income
+  Transfer
+  Loan
+  Adjustment
+  Refund
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  uuid        String          @unique @default(uuid()) @db.Uuid
+  type        TransactionType
+  amount      Decimal         @db.Decimal(15, 2)
+  date        DateTime
+  description String
+  clientUuid  String          @map("client_uuid") @db.Uuid
+  projectUuid String?         @map("project_uuid") @db.Uuid
+  userUuid    String          @map("user_uuid") @db.Uuid
+  client      Client          @relation(fields: [clientUuid], references: [uuid])
+  project     Project?        @relation(fields: [projectUuid], references: [uuid])
+  user        User            @relation(fields: [userUuid], references: [uuid])
+
+  @@map("transaction")
+}
